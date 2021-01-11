@@ -196,8 +196,19 @@ namespace ClientCenter
             Application.Current.Exit += new ExitEventHandler(Current_Exit);
             ThemeManager.SetActiveTheme(NavigationPaneTheme.WindowsLive);
             Style s = new Style();
-            s.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Collapsed));
-            tabNavigationPanels.ItemContainerStyle = s;
+            //s.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Collapsed));
+            //tabNavigationPanels.ItemContainerStyle = s;
+
+            // Hide all the tabs initially
+            foreach (TabItem iTab in tabNavigationPanels.Items)
+            {
+                try
+                {
+                    iTab.Visibility = Visibility.Collapsed;
+                }
+                catch { }
+            }
+
             tb_wsmanport.Text = Properties.Settings.Default.WinRMPort;
             cb_ssl.IsChecked = Properties.Settings.Default.WinRMSSL;
             wmiBroser.lAdhocQueries = Properties.Settings.Default.AdhocInv.Cast<string>().ToList();
@@ -582,6 +593,28 @@ namespace ClientCenter
                     ribbon1.IsEnabled = true;
                     agentSettingItem1.IsEnabled = true;
 
+                    ShowTab(AgentSettingsPanel);
+                    AgentSettingsPanel.IsSelected = true;
+
+                    // add the event monitoring tab
+                    eventMonitoring1.SCCMAgentConnection = oAgent;
+                    ShowTab(EventMonitoringTab);
+
+                    // start the monitoring
+                    eventMonitoring1.StartMonitoring();
+
+                    //// add the SWDistApps tab
+                    //SWDistSummaryGrid1.SCCMAgentConnection = oAgent;
+                    //ShowTab(SWDistApps);
+
+                    // add the swupdates tab
+                    sWAllUpdatesGrid1.SCCMAgentConnection = oAgent;
+                    ShowTab(SWAllUpdates);
+
+                    // add the cache tab
+                    cacheGrid1.SCCMAgentConnection = oAgent;
+                    ShowTab(CachePanel);
+
                     this.Title = sTarget;
 
                 }
@@ -606,19 +639,33 @@ namespace ClientCenter
 
         }
 
+        private int visibleTabs = 0;
+        private void ShowTab(TabItem tab)
+        {
+            if (tab.Visibility != Visibility.Visible)
+            {
+                tabNavigationPanels.Items.Remove(tab);
+                tabNavigationPanels.Items.Insert(visibleTabs++, tab);
+                tab.Visibility = Visibility.Visible;
+            }
+        }
+
         private void TreeViewItem_Selected(object sender, RoutedEventArgs e)
         {
             try
             {
                 if (((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Tag != null)
                 {
-                    foreach (TabItem iTab in tabNavigationPanels.Items)
+                    for (int i = 0; i < tabNavigationPanels.Items.Count; i++)
                     {
                         try
                         {
+                            TabItem iTab = (TabItem)tabNavigationPanels.Items[i];
                             if (iTab.Tag.ToString() == ((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Tag.ToString())
                             {
+                                ShowTab(iTab);
                                 iTab.IsSelected = true;
+                                
                                 switch (iTab.Tag.ToString())
                                 {
                                     case "Components":

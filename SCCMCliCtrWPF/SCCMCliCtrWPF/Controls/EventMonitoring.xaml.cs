@@ -70,6 +70,12 @@ namespace ClientCenter
         private void bt_StartMonitoring_Click(object sender, RoutedEventArgs e)
         {
             Mouse.OverrideCursor = Cursors.Wait;
+            StartMonitoring();
+            Mouse.OverrideCursor = Cursors.Arrow;
+        }
+
+        public void StartMonitoring()
+        {
             try
             {
                 oAgent.Client.Monitoring.AsynchronousScript.Connect();
@@ -85,7 +91,6 @@ namespace ClientCenter
                 ex.Message.ToString();
                 Listener.WriteError(ex.Message);
             }
-            Mouse.OverrideCursor = Cursors.Arrow;
         }
 
         void AsynchronousScript_TypedOutput(object sender, EventArgs e)
